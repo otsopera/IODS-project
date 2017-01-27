@@ -1,4 +1,15 @@
+```{r code1, echo=F}
+week_no <- 1
 
-# About the project
+```
 
-*Write a short description about the course and add a link to your github repository here. This is an R markdown (.Rmd) file so you can use R markdown syntax. See the 'Useful links' page in the mooc area (chapter 1) for instructions.*
+# This is the Introduction to Open Data Science course diary for week `r week_no ` 
+
+*In this course, I will learn to use all kinds of cool tools, including R, R markdown and Git(Hub)*
+
+My project can be found [here](https://www.youtube.com/watch?v=dQw4w9WgXcQ). If that link does not work for some reason, it is  as well [here](https://github.com/otsopera/IODS-project)
+
+
+[//]: The week we are now on is week number `r week_no`. By the way, the week number was not written directly by me: instead, at the beginning of the document I defined the variable week_no like this: ` week_no <- 1 `. Later, in the text I just wrote `week_no ` in the text, surrounded by ` `` `` `  
+
+

@@ -1,0 +1,12 @@
+---
+title: "Readme"
+output:
+  html_document:
+    theme: united
+    highlight: tango
+---
+
+# This is the readme for my "Introduction to Open Data Science" course diary
+
+
+You can find the diary [here](https://otsopera.github.io/IODS-project/). There's a lot of cool stuff there (though not really yet). But I expect to add more in the coming weeks!
