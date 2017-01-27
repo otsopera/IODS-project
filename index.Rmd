@@ -1,6 +1,6 @@
 ---
 title: "IODS course project"
-author: "Otso Peräkylä"
+author: "Otso Perakyla"
 output:
   html_document:
     theme: default
