@@ -3,7 +3,7 @@ title: "IODS course project"
 author: "Otso Perakyla"
 output:
   html_document:
-    theme: default
+    theme: journal
     toc: true
     toc_depth: 2
     fig_caption: true
