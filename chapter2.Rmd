@@ -1,7 +1,74 @@
-# Insert chapter 2 title here
+# Chapter 2: Regression analysis
 
-*Describe the work you have done this week and summarize your learning.*
+*Performing regression analysis on the Learning 2014 data*
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+
+- We'll use the data wrangled in the first part of exercise 2: the full description of the data can be found [here](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-meta.txt)
+- The data is collected on a statistics course in 2014, and describest the students' attitudes to learning, as well as background info on the students and the students' course scores. The students who did not attend the exam have been discarded from the analyses.
+
+Below you can see some descriptive figures on the data.
+
+
+```{r code2, echo=T, warning = F}
+
+# read the data
+lrn14_analysis <- read.table("./data/learning2014.txt",header = T,  dec = ".")
+
+# load visualization libraries
+library(GGally)
+library(ggplot2)
+
+# make cool plot
+p <- ggpairs(lrn14_analysis, mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p
+
+summary(lrn14_analysis)
+
+```
+ 
+ As you can see, there are about twice as many females compared to males. Judging from the distributions of the variables, there are a few differences between males and females (the overlaid distribution plots on the diagonal). The distribution of ages is similar with both genders: a peak at around 20 years, and a long tail to the older ages. Attitude shows the first difference: the females' attitudes vary more widely (as is clear from the wider distribution), and peak at lower values. Deep learning is relatively similar. With strategic learning, the females' scores peak at a higher value. With the surface learning, the difference is the opposite to the attitude: males' scores differ more widely, and females in general have a higher score. With the points the disrtibutions are very similar, with one key difference: there is a group of males with very high points. This separate group is not present in the females' distributions. Judging from the correlations (the numbers above the diagonal), there are mainly no strong dependencies between the variables (most of the correlations are below 0.2). There are again a  few exceptions. Attitudes and points seems to show a positive correlation, in both genders. Interestingly, within males the deep and surface learning are anticorrelated relatively strongly, while females show next to no correlation. Still, all of these interpretations are very preliminary: at least bigger figures, if not aome statistical testing, would be required to confirm them. 
+ 
+ 
+ 
+To see how well the other variables explain the exam score, we will perform a linear regression where we explain the exam points variable with three other variables. As noted earlier, attitude seems to correlate with the points, so we will include that as a variable explaining the points. Other correlations are much lower: let's take strategic and surface learning as the two other variables, as they have the next highest correlations with points, across genders. Below you see the diagnostics for this kind of a model:
+
+
+```{r code3, echo = T}
+# create the model
+my_model <- lm(Points ~ attitude + stra + surf, data = lrn14_analysis)
+
+# print out a summary of the model
+summary(my_model)
+
+
+```
+ 
+ 
+The multiple R-squared value tells us that the three variables explain around 21 percent of the variation in the exam points. Looking at the coefficients of the explanatory variables, we can see the values for attitude and strategic learning are positive, but the value for surface learning is negative. This means that, according to the model, with increasing points in attitude and strategic learning also the exam points increase. When the poins for the surface learning increase, the points for the exam points decrease. However, the p-values for the coefficients of strategic and surface learning are very high. This means that we cannot reliably say that the coefficients really differ from zero: in fact, chance would produce this kind of deviations in over 40 % of the cases for the coefficient of the surface learning, and over 10 % of the cases for the strategic learning. So basically these two variables don't tell us anything meaningful. The p-value for the attitude is way smaller, 1.93e-8. This means that most likely this coefficient really differs from zero, and we can get meaningful information about the exam points by looking at the attitude points. Because of these, let's remove the strategic and the surface learning from the model, and only keep the attitude to explain the exam points:
+ 
+ 
+ 
+```{r code4, echo = T}
+my_model2 <- lm(Points ~ attitude, data = lrn14_analysis)
+
+# print out a summary of the model
+summary(my_model2)
+```
+
+The R squared value has decreased to 19 percent: this is a drop of only 2 percentage points, while we removed two thirds of the explanatory variables. Now the model is much more simple, but still explains almost as much: in short, it is better. Let's look a bit at the diagnostics of the model, in a graphical form. The residuals (that is, the differences between the actual values and those predicted by the model) should be normally distributed. They should also be independent of each other, and the variables used in the model. Let's see how these hold
+
+
+ 
+```{r code5, echo = T}
+
+# draw diagnostic plots using the plot() function. Choose the plots 1, 2 and 5
+
+par(mfrow = c(2,2))
+plot(my_model2, which = c(1,2,5))
+
+```
+
+The normal Q-Q plot helps diagnose the normality of the residuals: if the residuals would be perfectly normally disrtibuted, the points on the plot would fall on the straight line. Now we can see that the fit looks good enough, though very large residuals are slightly non-normally distributed. Looking at the residuals vs. fitted values plot, there does not seem to be much of a systematic variation: in other words, the residuals look guide random. This is good, and exactly what we wanted. The residuals vs. leverage plot tells how strongly individual data points affect our model. The values of the leverage, at maximum around 0.05, are still quite small: this means that no one observation affects the model too much. This is again good, and we are satisfied with our model.
+
+ 
+ 
