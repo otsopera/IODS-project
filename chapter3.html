@@ -129,7 +129,16 @@ $(document).ready(function () {
 <p>It includes the following variables:</p>
 <pre class="r"><code># load visualization libraries
 
-library(ggplot2)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: 'dplyr'</code></pre>
+<pre><code>## The following objects are masked from 'package:stats':
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(ggplot2)
 # read the data
 alc &lt;- read.table(&quot;./data/alc_students.txt&quot;,header = T,  dec = &quot;.&quot;)
 
@@ -265,7 +274,26 @@ cbind(OR, CI)</code></pre>
 ## famrel      0.7475910 0.5811204 0.9595347
 ## absences    1.0980228 1.0524564 1.1504519
 ## sexM        2.7976292 1.7476499 4.5467291</code></pre>
-<p>The odds ratios describe how much higher the odds for a group are to belong to the high users group, compared to the previous group. So for the sex variable, it tells us that males have over twice as high odds to belong to the high users group compared to females. Similarly, with each unit increase of absences, the odds increase by 10 percent, and with each increase in the family relation quality the odds decreases by 25 percent. Now we neet to also note that the explanatory variables are on different scales: as the sex only takes two values, the difference between these two is big. The absences</p>
+<p>The odds ratios describe how much higher the odds for a group are to belong to the high users group, compared to the previous group. So for the sex variable, it tells us that males have over twice as high odds to belong to the high users group compared to females. Similarly, with each unit increase of absences, the odds increase by 10 percent, and with each increase in the family relation quality the odds decreases by 25 percent. Now we neet to also note that the explanatory variables are on different scales: as the sex only takes two values, the difference between these two is big. The absences, on the other hand, have a much wider range of values: even if this affected the alcohol use as much, the difference caused by a unit change in the absences would of course be smaller.</p>
+<p>The fact that none of the confidence intervals (CIs) include one confirms that the variables are statistivally significant: if the (95 percent) CI included one, it means that it would be “possible” that a unit increase in the explanatory variable did not change the high alcohol use probability in any direction.</p>
+<p>Next, let’s look at how the predictions of the model compare to the real values:</p>
+<pre class="r"><code># predict() the probability of high_use
+probabilities &lt;- predict(m, type = &quot;response&quot;)
+
+# add the predicted probabilities to 'alc'
+alc &lt;- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc &lt;- mutate(alc, prediction = probability &gt; 0.5)
+
+# tabulate the target variable versus the predictions
+a = table(high_use = alc$high_use, prediction = alc$prediction)
+a</code></pre>
+<pre><code>##         prediction
+## high_use FALSE TRUE
+##    FALSE   256   12
+##    TRUE     85   29</code></pre>
+<p>Now we classified those individuals, for which the model predicts a probability of 0.5 or more, to be predicted as high users. As we can se from the table, the model classified 256 (<span class="math inline">\(2^{8}\)</span>) observations, that are in reality false, to be false. In other words, these were classified correctly. 12 observations that were in reality false were classified as true. Out of the observations that were in reality true, 29 were classified as true, while 85 were classified as false. So out of the observations that really were false, the model correctly classified the majority, while tme majority of the true-in-real-life observations were misclassified. In total, however, the model correctly classified most of the observations, in fact 285 out of the total 382. Thus, the fraction of correctly classified observations is 75 percent. This is better than just random guessing the outcome with 50 percent probablity for each outcome. The fraction of the high users in the data is 30 So if we guessed for every individual that they were not heavy users, we would get 100 - 30 = 70 percent of the cases correct. Our model gives 75 percent. This means that it is better than just best guess without background info on each individual, so it is of some use at least. Even if it had a lower percentage of correctly classified individuals, it could still benefit us in some way. After all, we were now only looking at binary classifications. This means that we discarded most of the information given by the model, in the form of individual probabilities for each subject.</p>
 </div>
 
 

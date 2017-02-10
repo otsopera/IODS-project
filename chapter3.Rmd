@@ -15,6 +15,7 @@ It includes the following variables:
 
 # load visualization libraries
 
+library(dplyr)
 library(ggplot2)
 # read the data
 alc <- read.table("./data/alc_students.txt",header = T,  dec = ".")
@@ -156,6 +157,31 @@ cbind(OR, CI)
 
 ```
 
-The odds ratios describe how much higher the odds for a group are to belong to the high users group, compared to the previous group. So for the sex variable, it tells us that males have over twice as high odds to belong to the high users group compared to females. Similarly, with each unit increase of absences, the odds increase by 10 percent, and with each increase in the family relation quality the odds decreases by 25 percent. Now we neet to also note that the explanatory variables are on different scales: as the sex only takes two values, the difference between these two is big. The absences 
+The odds ratios describe how much higher the odds for a group are to belong to the high users group, compared to the previous group. So for the sex variable, it tells us that males have over twice as high odds to belong to the high users group compared to females. Similarly, with each unit increase of absences, the odds increase by 10 percent, and with each increase in the family relation quality the odds decreases by 25 percent. Now we neet to also note that the explanatory variables are on different scales: as the sex only takes two values, the difference between these two is big. The absences, on the other hand, have a much wider range of values: even if this affected the alcohol use as much, the difference caused by a unit change in the absences would of course be smaller. 
+
+The fact that none of the confidence intervals (CIs) include one confirms that the variables are statistivally significant: if the (95 percent) CI included one, it means that it would be "possible" that a unit increase in the explanatory variable did not change the high alcohol use probability in any direction.
+
+
+Next, let's look at how the predictions of the model compare to the real values:
+
+
+```{r code16, echo = T}
+# predict() the probability of high_use
+probabilities <- predict(m, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc <- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability > 0.5)
+
+# tabulate the target variable versus the predictions
+a = table(high_use = alc$high_use, prediction = alc$prediction)
+a
+
+```
+
+Now we classified those individuals, for which the model predicts a probability of 0.5 or more, to be predicted as high users. As we can se from the table, the model classified `r a[1,1] ` ($2^{8}$) observations, that are in reality false, to be false. In other words, these were classified correctly. `r a[1,2] ` observations that were in reality false were classified as true. Out of the observations that were in reality true, `r a[2,2] ` were classified as true, while `r a[2,1] ` were classified as false. So out of the observations that really were false, the model correctly classified the majority, while tme majority of the true-in-real-life observations were misclassified. In total, however, the model correctly classified most of the observations, in fact `r a[1,1] + a[2,2] ` out of the total `r sum(a) `. Thus, the fraction of correctly classified observations is `r round((a[1,1] + a[2,2])/sum(a)*100) ` percent. This is better than just random guessing the outcome with 50 percent probablity for each outcome. The fraction of the high users in the data is  `r round((a[2,1] + a[2,2])/sum(a)*100) ` So if we guessed for every individual that they were not heavy users, we would get 100 - `r round((a[2,1] + a[2,2])/sum(a)*100) ` = `r 100 - round((a[2,1] + a[2,2])/sum(a)*100) ` percent of the cases correct. Our model gives `r round((a[1,1] + a[2,2])/sum(a)*100) ` percent. This means that it is better than just best guess without background info on each individual, so it is of some use at least. Even if it had a lower percentage of correctly classified individuals, it could still benefit us in some way. After all, we were now only looking at binary classifications. This means that we discarded most of the information given by the model, in the form of individual probabilities for each subject.
+
 
  
