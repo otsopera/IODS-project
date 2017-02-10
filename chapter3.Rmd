@@ -1,6 +1,6 @@
-# Chapter 2: Regression analysis
+# Chapter 3: Logistic Regression
 
-*Performing regression analysis on the Learning 2014 data*
+*Performing logistic regression analysis on the student alcohol consumption data*
 
 
 - We'll use the data wrangled in the first part of exercise 3: the full description of the data can be found [here](https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION)
@@ -13,18 +13,14 @@ It includes the following variables:
 
 ```{r code6, echo=T, warning = F}
 
+# load visualization libraries
+
+library(ggplot2)
 # read the data
 alc <- read.table("./data/alc_students.txt",header = T,  dec = ".")
 
 
 print(colnames(alc))
-# load visualization libraries
-library(GGally)
-library(ggplot2)
-
-
-
-summary(alc)
 
 ```
  
@@ -42,7 +38,7 @@ summary(alc)
 g1 <- ggplot(data = alc, aes(x = sex, fill = high_use))
 
 # define the plot as a bar plot and draw it
-g1 + geom_bar()
+g1 + geom_bar() + xlab("Sex")
 
 ```
  
@@ -72,4 +68,47 @@ g3 + geom_boxplot() + ylab("Quality of family relationships")
 
 
 ```
+ 
+ As we can see, the box plot is not very ideal for this task: with non-high-users, the 25th percentile and median are the same value, while for the high users the same applies for the median and 75th percentile. This shows as missing halves of the boxes. Still, we can maybe see that the high users have slightly lower scores for the quality of family relationships. Next, let's look at the romantic relationship variable, and its effect on the alcohol use.
+
+```{r code10, echo = T}
+# create the model
+
+# initialize a plot of alcohol use
+g4 <- ggplot(data = alc, aes(x = romantic, fill = high_use))
+
+# define the plot as a bar plot and draw it
+g4 + geom_bar() + ylab("Being in a romantic relationship")
+
+```
+
+First of all, we can see that there are around twice as many people not in romantic relationship as those who are. It looks that there might be a bit smaller proportion of high alcohol users in those who are in a romantic relationship, compared to those who are not. We will see this better when we construct the model. As the last of the variables, we will look at the number of school absences. It's distribution is plotted below:
+
+```{r code11, echo = T}
+# create the model
+
+# initialize a plot of alcohol use
+g5 <- ggplot(data = alc, aes(x = absences))
+
+# define the plot as a bar plot and draw it
+g5 + geom_histogram(binwidth = 1) + xlab("Number of school absences")
+
+```
+ 
+So most of the people have less than ten absences. Let's see how high alcohols users compare to others in this respect:
+ 
+```{r code12, echo = T}
+# create the model
+
+
+g6 <- ggplot(alc, aes(x = high_use, y = absences))
+
+# define the plot as a boxplot and draw it
+g6 + geom_boxplot() + ylab("Number of school absences")
+
+
+```
+
+Now we can see the box of the high alcohol users extending to clearly more absences. This is in line with the original hypothesis.
+
  
