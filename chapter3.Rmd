@@ -32,7 +32,7 @@ print(colnames(alc))
  
  
 ```{r code7, echo = T}
-# create the model
+
 
 # initialize a plot of alcohol use
 g1 <- ggplot(data = alc, aes(x = sex, fill = high_use))
@@ -45,7 +45,7 @@ g1 + geom_bar() + xlab("Sex")
  In the figure we can see that, first of all, there are a few more females compared to males. However, there are almost twice as many high alcohol users within males: so this would seem to support the initial hypothesis. We will test this further with a logistic regression model in a moment. Before that, let's look at the other variables. 
  
 ```{r code8, echo = T}
-# create the model
+
 
 # initialize a plot of alcohol use
 g2 <- ggplot(data = alc, aes(x = famrel))
@@ -58,7 +58,7 @@ g2 + geom_histogram(binwidth = 1) + xlab("Quality of family relationships")
  We can see that most of the respondents have relatively good family relations. Now, let's check how these affect the alcohol consumption: 
  
 ```{r code9, echo = T}
-# create the model
+
 
 
 g3 <- ggplot(alc, aes(x = high_use, y = famrel))
@@ -72,7 +72,7 @@ g3 + geom_boxplot() + ylab("Quality of family relationships")
  As we can see, the box plot is not very ideal for this task: with non-high-users, the 25th percentile and median are the same value, while for the high users the same applies for the median and 75th percentile. This shows as missing halves of the boxes. Still, we can maybe see that the high users have slightly lower scores for the quality of family relationships. Next, let's look at the romantic relationship variable, and its effect on the alcohol use.
 
 ```{r code10, echo = T}
-# create the model
+
 
 # initialize a plot of alcohol use
 g4 <- ggplot(data = alc, aes(x = romantic, fill = high_use))
@@ -85,7 +85,7 @@ g4 + geom_bar() + ylab("Being in a romantic relationship")
 First of all, we can see that there are around twice as many people not in romantic relationship as those who are. It looks that there might be a bit smaller proportion of high alcohol users in those who are in a romantic relationship, compared to those who are not. We will see this better when we construct the model. As the last of the variables, we will look at the number of school absences. It's distribution is plotted below:
 
 ```{r code11, echo = T}
-# create the model
+
 
 # initialize a plot of alcohol use
 g5 <- ggplot(data = alc, aes(x = absences))
@@ -98,7 +98,6 @@ g5 + geom_histogram(binwidth = 1) + xlab("Number of school absences")
 So most of the people have less than ten absences. Let's see how high alcohols users compare to others in this respect:
  
 ```{r code12, echo = T}
-# create the model
 
 
 g6 <- ggplot(alc, aes(x = high_use, y = absences))
@@ -110,5 +109,53 @@ g6 + geom_boxplot() + ylab("Number of school absences")
 ```
 
 Now we can see the box of the high alcohol users extending to clearly more absences. This is in line with the original hypothesis.
+
+Next, let's fit the binomial model to explore the hypotheses further. 
+
+```{r code13, echo = T}
+# create the model
+
+# find the model with glm()
+m <- glm(high_use ~ famrel + romantic + absences + sex, data = alc, family = "binomial")
+
+# print out a summary of the model
+summary(m)
+
+
+```
+
+Now the high alcohol use is indicated with a true value in the variable. This means that positive coefficients signify increased likelihood of high alcohol usage, while negative coeffcients signify a decreased likelihood. As expected, good familiy relations and romantic relationship decreases the likelihood, while absences and the male sex increase it. Out of the explanatory variables, number of absences and sex are highly significant (p<0.001), and quality of family relationships is still significant (p<0.05). However, the involvment in a romantic relationship is not a statistically significant explanatory variable. So let's remove that from our model.
+
+
+```{r code14, echo = T}
+# create the model
+
+# find the model with glm()
+m <- glm(high_use ~ famrel  + absences + sex, data = alc, family = "binomial")
+
+# print out a summary of the model
+summary(m)
+
+
+```
+
+
+Now all the explanatory variables have a statistically significant relationship with the high alcohol use. To better be able to interpret the coefficients, we will convert them to odds ratios next, and also calculate their confidence intervals:
+
+
+
+```{r code15, echo = T}
+OR <- exp(coef(m))
+
+# compute confidence intervals (CI)
+CI <- exp(confint(m))
+
+# print out the odds ratios with their confidence intervals
+cbind(OR, CI)
+
+
+```
+
+The odds ratios describe how much higher the odds for a group are to belong to the high users group, compared to the previous group. So for the sex variable, it tells us that males have over twice as high odds to belong to the high users group compared to females. Similarly, with each unit increase of absences, the odds increase by 10 percent, and with each increase in the family relation quality the odds decreases by 25 percent. Now we neet to also note that the explanatory variables are on different scales: as the sex only takes two values, the difference between these two is big. The absences 
 
  
