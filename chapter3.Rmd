@@ -1,0 +1,75 @@
+# Chapter 2: Regression analysis
+
+*Performing regression analysis on the Learning 2014 data*
+
+
+- We'll use the data wrangled in the first part of exercise 3: the full description of the data can be found [here](https://archive.ics.uci.edu/ml/datasets/STUDENT+ALCOHOL+CONSUMPTION)
+
+
+- The data is collected on mathematics and portuguese classes: only students who answered the questionnaire on both classes have been included in the analyses.
+
+It includes the following variables:
+
+
+```{r code6, echo=T, warning = F}
+
+# read the data
+alc <- read.table("./data/alc_students.txt",header = T,  dec = ".")
+
+
+print(colnames(alc))
+# load visualization libraries
+library(GGally)
+library(ggplot2)
+
+
+
+summary(alc)
+
+```
+ 
+ The student alcohol consumption during weekdays has been recorded in the variable Dalc, and that during weekends in Walc. The average of the two is stored in the variable alc_use. Based on this value, the stuents have been dividen in two groups: those with high alcohol use (average over 2), and the others: this is indicated in the boolean variable high_use.
+ 
+ Next we will try to explain the high alcohol use with other variables. Now, it is not clear if he other variables cause high alcohol use, or vice versa. Still, in our model, we will explain the alcohol use using the other variables, disregarding any direction of (possible) causality. 
+ 
+ Variables that might be related to high alcohol consumption include the student's sex, (variable sex), quality of family relationships (famrel), being in a romantic relationship (romantic), and number of school absences (absences). I would guess that, on average, males have a higher risk of high alcohol consumption. Number of school absences would possibly increase the likelihood of high alcohol use, while being in a romantic relationship and good family relationships would decrease the likelihood. Next, well explore whether these hypotheses hold true or not. 
+ 
+ 
+```{r code7, echo = T}
+# create the model
+
+# initialize a plot of alcohol use
+g1 <- ggplot(data = alc, aes(x = sex, fill = high_use))
+
+# define the plot as a bar plot and draw it
+g1 + geom_bar()
+
+```
+ 
+ In the figure we can see that, first of all, there are a few more females compared to males. However, there are almost twice as many high alcohol users within males: so this would seem to support the initial hypothesis. We will test this further with a logistic regression model in a moment. Before that, let's look at the other variables. 
+ 
+```{r code8, echo = T}
+# create the model
+
+# initialize a plot of alcohol use
+g2 <- ggplot(data = alc, aes(x = famrel))
+
+# define the plot as a bar plot and draw it
+g2 + geom_histogram(binwidth = 1) + xlab("Quality of family relationships")
+
+```
+ 
+ We can see that most of the respondents have relatively good family relations. Now, let's check how these affect the alcohol consumption: 
+ 
+```{r code9, echo = T}
+# create the model
+
+
+g3 <- ggplot(alc, aes(x = high_use, y = famrel))
+
+# define the plot as a boxplot and draw it
+g3 + geom_boxplot() + ylab("Quality of family relationships")
+
+
+```
+ 
