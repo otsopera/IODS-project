@@ -222,14 +222,13 @@ summary(dist_eu)
 Seems that there is at least some variation in the distances: the closest values are only 0.13 units apart, while the farthest are 14 units apart. We'll try and see if we can cluster the observations using k-means next. To begin with, we'll request 4 clusters. So next we'll run the analyses, and plot the results
 
 
-```{r code28, echo = T}
+```{r code28, echo = T, warning=F}
 
 
 # k-means clustering
 km <-kmeans(dist_eu, centers = 4)
 boston_scaled$clusters = as.factor(km$cluster)
-# plot the Boston dataset with clusters
-pairs(Boston, col = km$cluster)
+
 # plot matrix of the variables
 p2 <- ggpairs(boston_scaled, mapping = aes(col = clusters, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
 p2
@@ -237,4 +236,6 @@ p2
 
 ```
 
-Actually, it now seems that some of the non-normal variables might after all be normal withing groups. 
+Actually, it now seems that some of the non-normal variables might after all be more normal withing groups. For example the lstat (lower status of the population (percent)), which originally had a very wide and skewed distribution, now seeems to consist of slightly more normal, though still skewed, distributions.
+
+Some of the variables seem to be better at separating the clusters than others. Still all of the variables seem to vary across clusters. For exapmle the aforementioned lstat, and NO$_X$ seem to separate the clusters nicely, as do the tax, medv and indus. 
