@@ -1,0 +1,240 @@
+# Chapter 4: Clustering and classification
+
+*Clustering the Boston Suburbs*
+
+
+We will be attempting to clusted the suburbs of Boston into groups based on housing values in them. The data is part of the MASS package in R, and a more complete description of it can be found  [here](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html)
+
+
+It includes the following variables:
+
+
+```{r code17, echo=T, warning = F}
+
+# clear all variables possibly left over from previous sessions
+rm(list = ls())
+
+# load libraries
+
+library(GGally)
+library(ggplot2)
+library(MASS)# access the MASS package
+library(dplyr)
+
+# load the data
+data("Boston")
+
+# explore the dataset
+str(Boston)
+dim(Boston)
+
+```
+ 
+ 
+ Let's explore the distributions and relations of the variables:
+
+```{r code18, echo = T}
+
+
+
+# plot matrix of the variables
+p <- ggpairs(Boston, mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
+p
+
+
+```
+ 
+Most of the variables do not seem very normally distributed. In fact, only the variable rm (average number of rooms per dwelling) is anywhere near normal, and even that is slightly skewed. Most of the others have a very wide (NO$_X$, nitrogen oxides in the air), or multimodal (more than one peak: indus, the proportion of non-retail business acres per town) distribution. This could be a problem later on: one of the assumptions of linear discriminant analysis (LDA) that we will be using to classify the suburbs is that the variables used for the classification are normally distributed (within groups). Now we are of course only looking at the total distributions: it would be possible that when looking at the distributions within the groups, the variables would be normally distributed. However, I find this highly unlikely. 
+
+The relationships between the variables also seem to vary. Some seem pretty linear, such as the relationship between rm and medv (median value of owner-occupied homes in \$1000s.). Some others seem totally non-linear, like NO$_X$ and dis (weighted mean of distances to five Boston employment centres.): here the relationship is a negative one, which makes sense: the farther you are from the centre, the less air pollution you have. Still others are just weird, like age (proportion of owner-occupied units built prior to 1940.) and black (1000(Bk - 0.63)$^2$ where Bk is the proportion of blacks by town.). 
+
+Finally, let's look at some summary statistics of the variables:
+
+
+ 
+```{r code19, echo = T}
+
+
+library(pastecs) # load pastecs library for easy calculation and presenting of standard deviations
+round(stat.desc(Boston),3)[c(1,4,5,8,9,13),] #printing N, min, max, med, mean, sd
+
+
+
+
+```
+ 
+We can see that both the means and the standard deviations of the variables vary wildly. The standard deviations should be the same for each variable if we want to use them for classification. Only in this way can we assess the similarity of observations using the distances between them. So let's standardize the variables.
+```{r code20, echo = T}
+# center and standardize variables
+boston_scaled <- as.data.frame(scale(Boston))
+
+round(stat.desc(boston_scaled),3)[c(1,4,5,8,9,13),] #printing N, min, max, med, mean, sd
+
+
+```
+
+
+Now the means are all zero, and the standard deviations one. The non-normality of the variables can be seen, as for some variables the median differs considerably from the mean of zero. Also the minima and maxima of some variables differ a lot. For the rm, which seemed the most normal variable, they are quite close together, and the median is not too far from the mean either.
+
+Next we will classify the suburbs into classes based on the crime rate. 
+
+```{r code21, echo = T}
+# save the scaled crim as scaled_crim
+scaled_crim <- boston_scaled$crim
+
+# create a quantile vector of crim
+bins <- quantile(scaled_crim)
+
+# create a categorical variable 'crime'
+crime <- cut(scaled_crim, breaks = bins, include.lowest = TRUE, label = c("low", "med_low", "med_high", "high"))
+
+# remove original crim from the dataset
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+
+# add the new categorical value to scaled data
+boston_scaled <- data.frame(boston_scaled, crime)
+
+
+```
+ 
+Now that the classification is done, we will split the data set into a training set (train), which includes 80% of the observations. We'll choose these "randomly", but using the same seed for reproducibility. 
+ 
+ 
+ 
+```{r code22, echo = T}
+set.seed(777)
+
+# number of rows in the Boston dataset 
+n <- nrow(boston_scaled)
+
+# choose randomly 80% of the rows
+ind <- sample(n,  size = n * 0.8)
+
+# create train set
+train <- boston_scaled[ind,]
+
+# create test set 
+test <- boston_scaled[-ind,]
+
+
+
+
+```
+
+Having the training and test data done, we are ready to start classifying using LDA. We will try to classify the suburbs into crime rate classes, based on the other data. So, let's do that next, and plot the results. 
+
+```{r code23, echo = T}
+
+# linear discriminant analysis
+lda.fit <- lda(crime ~ ., data = train)
+
+# print the lda.fit object
+lda.fit
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train$crime)
+
+# plot the lda results
+plot(lda.fit, dimen = 2, col = classes, pch = classes)
+lda.arrows(lda.fit, myscale = 2)
+
+
+
+
+
+```
+
+According to the plot, the suburbs with the high crime rate get very well separated from the others (not regarding the few medium crime rate suburbs that cluster with the high ones). For the other classes the classification is a bit more ambiguous: they are not separated that well on the plot. Next, let's see how well the model does classifying the test data. For that, we'll remove the class variable from the test data, and save it separately. That way we can be absolutely sure that the model does not see the actual classes and cheat:)
+
+
+
+```{r code24, echo = T}
+# save the correct classes from test data
+correct_classes <- test$crime
+
+# remove the crime variable from test data
+test <- dplyr::select(test, -crime)
+
+
+
+```
+Now we are ready to classify the test data. Let's do that, and see the how well the model did. 
+
+```{r code25, echo = T}
+# predict classes with test data
+lda.pred <- predict(lda.fit, newdata = test)
+
+# cross tabulate the results
+table(correct = correct_classes, predicted = lda.pred$class)
+
+
+```
+
+Based on the table, the result seems pretty good! All in all, `r sum(correct_classes == lda.pred$class) ` of the suburbs are correctly classified, while only  `r sum(correct_classes != lda.pred$class) ` are not. Again the high crime rate class seems to perform the best: out of the  `r sum(correct_classes == "high") ` suburbs with high crime rate, `r sum(correct_classes == lda.pred$class & correct_classes == "high")  ` were correcrly classified. That is a whopping `r round(sum(correct_classes == lda.pred$class & correct_classes == "high")/sum(correct_classes == "high")*100, digits = 0 ) ` percent! Also, only `r sum(correct_classes != lda.pred$class & lda.pred$class == "high")  ` observation that did not belong to the "high" group was misclassified in that group. So cool, our LDA worked pretty well.
+
+Now that the LDA is done, let's move on to k-means clustering. We will first clear all variables from the memory, and reload the Boston data set. 
+
+```{r code26, echo = T}
+
+
+# clear all variables possibly left over from previous sessions
+rm(list = ls())
+
+# load the data
+data("Boston")
+
+# explore the dataset
+str(Boston)
+dim(Boston)
+
+
+
+```
+
+We already know what's in the data, so let's not spend more time looking at that. Instead, let's again standardize the data to get sensible distance measures for estimating the similarity of observations. Then, let's calculate the Euclidean distances. 
+
+```{r code27, echo = T}
+
+
+# center and standardize variables
+boston_scaled <- as.data.frame(scale(Boston))
+
+# euclidean distance matrix
+dist_eu <- dist(boston_scaled)
+
+# look at the summary of the distances
+summary(dist_eu)
+
+
+```
+
+
+Seems that there is at least some variation in the distances: the closest values are only 0.13 units apart, while the farthest are 14 units apart. We'll try and see if we can cluster the observations using k-means next. To begin with, we'll request 4 clusters. So next we'll run the analyses, and plot the results
+
+
+```{r code28, echo = T}
+
+
+# k-means clustering
+km <-kmeans(dist_eu, centers = 4)
+boston_scaled$clusters = as.factor(km$cluster)
+# plot the Boston dataset with clusters
+pairs(Boston, col = km$cluster)
+# plot matrix of the variables
+p2 <- ggpairs(boston_scaled, mapping = aes(col = clusters, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p2
+
+
+```
+
+Actually, it now seems that some of the non-normal variables might after all be normal withing groups. 
