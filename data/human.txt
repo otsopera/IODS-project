@@ -1,4 +1,4 @@
-"GII_rank" "Country" "GII" "maternal_mortality" "adolescent_birth_rate" "parl_represent" "sec_edu_women" "sec_edu_men" "labour_partic_women" "labour_partic_men" "gender_ratio_sec_edu" "gender_ratio_labour_force" "HDI_rank" "HDI" "life_exp_yrs" "exp_edu_yrs" "mean_edu_yrs" "GNI" "GNI_minus_HDI_ranks"
+"GII.Rank" "Country" "GII" "Mat.Mor" "Ado.Birth" "Parli.F" "Edu2.F" "Edu2.M" "Labo.F" "Labo.M" "Edu2.FM" "Labo.FM" "HDI.Rank" "HDI" "Life.Exp" "Edu.Exp" "Edu.Mean" "GNI" "GNI.Minus.Rank"
 1 "Norway" 0.067 4 7.8 39.6 97.4 96.7 61.2 68.7 1.00723888314374 0.890829694323144 1 0.944 81.6 17.5 12.6 "64,992" 5
 2 "Australia" 0.11 6 12.1 30.5 94.3 94.6 58.8 71.8 0.996828752642706 0.818941504178273 2 0.935 82.4 20.2 13 "42,261" 17
 3 "Switzerland" 0.028 6 1.9 28.5 95 96.6 61.8 74.9 0.98343685300207 0.825100133511348 3 0.93 83 15.8 12.8 "56,431" 6

@@ -36,36 +36,42 @@ dim(gii)
 # rename the variables to more handy values. First get the current names, then change them accordingly.
 # done like this in order not to mess up the order of the names
 
+
+[9] "GII.Rank"       "GII"            "Mat.Mor"        "Ado.Birth"     
+[13] "Parli.F"        "Edu2.F"         "Edu2.M"         "Labo.F"        
+[17] "Labo.M"         "Edu2.FM"        "Labo.FM"
+
+
 names_hd = names(hd) # get names
-names_hd[names_hd == "HDI.Rank"] <- "HDI_rank"
+#names_hd[names_hd == "HDI.Rank"] <- "HDI_rank"
 names_hd[names_hd == "Human.Development.Index..HDI."] <- "HDI"
-names_hd[names_hd == "Life.Expectancy.at.Birth"] <- "life_exp_yrs"
-names_hd[names_hd == "Expected.Years.of.Education"] <- "exp_edu_yrs"
-names_hd[names_hd == "Mean.Years.of.Education"] <- "mean_edu_yrs"
+names_hd[names_hd == "Life.Expectancy.at.Birth"] <- "Life.Exp"
+names_hd[names_hd == "Expected.Years.of.Education"] <- "Edu.Exp"
+names_hd[names_hd == "Mean.Years.of.Education"] <- "Edu.Mean"
 names_hd[names_hd == "Gross.National.Income..GNI..per.Capita"] <- "GNI"
-names_hd[names_hd == "GNI.per.Capita.Rank.Minus.HDI.Rank"] <- "GNI_minus_HDI_ranks"
+names_hd[names_hd == "GNI.per.Capita.Rank.Minus.HDI.Rank"] <- "GNI.Minus.Rank"
 names(hd) = names_hd; # set names
 
 
 
 names_gii = names(gii)
-names_gii[names_gii == "GII.Rank"] <- "GII_rank"
+names_gii[names_gii == "GII.Rank"] <- "GII.Rank"
 names_gii[names_gii == "Gender.Inequality.Index..GII."] <- "GII"
-names_gii[names_gii == "Maternal.Mortality.Ratio"] <- "maternal_mortality"
-names_gii[names_gii == "Adolescent.Birth.Rate"] <- "adolescent_birth_rate"
-names_gii[names_gii == "Percent.Representation.in.Parliament"] <- "parl_represent"
-names_gii[names_gii == "Population.with.Secondary.Education..Female."] <- "sec_edu_women"
-names_gii[names_gii == "Population.with.Secondary.Education..Male."] <- "sec_edu_men"
-names_gii[names_gii == "Labour.Force.Participation.Rate..Female."] <- "labour_partic_women"
-names_gii[names_gii == "Labour.Force.Participation.Rate..Male."] <- "labour_partic_men"
+names_gii[names_gii == "Maternal.Mortality.Ratio"] <- "Mat.Mor"
+names_gii[names_gii == "Adolescent.Birth.Rate"] <- "Ado.Birth"
+names_gii[names_gii == "Percent.Representation.in.Parliament"] <- "Parli.F"
+names_gii[names_gii == "Population.with.Secondary.Education..Female."] <- "Edu2.F"
+names_gii[names_gii == "Population.with.Secondary.Education..Male."] <- "Edu2.M"
+names_gii[names_gii == "Labour.Force.Participation.Rate..Female."] <- "Labo.F"
+names_gii[names_gii == "Labour.Force.Participation.Rate..Male."] <- "Labo.M"
 
 names(gii) = names_gii
 
 
 
 # create two new variables to the gender inequality set
-gii <- mutate(gii, gender_ratio_sec_edu = sec_edu_women/sec_edu_men)
-gii <- mutate(gii, gender_ratio_labour_force = labour_partic_women/labour_partic_men)
+gii <- mutate(gii, Edu2.FM = Edu2.F/Edu2.M)
+gii <- mutate(gii, Labo.FM = Labo.F/Labo.M)
 
 
 # use country as identifier
