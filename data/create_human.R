@@ -1,6 +1,6 @@
 # Otso Perakyla, 17.2.2017: IODS exercise 4
 
-# set working directory
+# set working directory, depending on machine
 if (Sys.info()['sysname'] == 'Windows') {
   setwd("D:/Documents/Courses/IODS/IODS-project/data")
 } else {
@@ -35,11 +35,6 @@ dim(gii)
 
 # rename the variables to more handy values. First get the current names, then change them accordingly.
 # done like this in order not to mess up the order of the names
-
-
-[9] "GII.Rank"       "GII"            "Mat.Mor"        "Ado.Birth"     
-[13] "Parli.F"        "Edu2.F"         "Edu2.M"         "Labo.F"        
-[17] "Labo.M"         "Edu2.FM"        "Labo.FM"
 
 
 names_hd = names(hd) # get names
@@ -103,10 +98,22 @@ library(stringr)
 # look at the structure of the GNI column in 'human'
 str(human$GNI)
 
-# remove the commas from GNI and save it in the human data
-
-
+# remove the commas from GNI and save it in the human data in numerical form
 human <- mutate(human, GNI = as.numeric(str_replace(human$GNI, pattern=",", replace ="")))
 summary(human$GNI)
 
 
+# columns to keep
+keep <- c("Country", "Edu2.FM", "Labo.FM", "Life.Exp", "Edu.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
+
+# select the 'keep' columns
+human <- select(human, one_of(keep))
+
+
+
+# filter out all rows with NA values
+human <- filter(human, complete.cases(human))
+
+
+# filter out all last seven rows (regions instead of countries)
+human <- human[1:155,]
