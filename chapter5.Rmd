@@ -1,0 +1,158 @@
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8,
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+# Chapter 5: Dimension reduction
+
+*Reducing the dimensions of the Human Development data*
+
+
+We will be attempting to reduce the dimensions in the [Human Development Index (HDI) data](http://hdr.undp.org/en/content/human-development-index-hdidata). The data we are using consists of the HDI data as described in the link, as well as the gender inequality index (GII) data, also described in the link. The data consists of the HDI and GII components by country: the original data also has the components for some regions (such as the whole world), but we have excluded these from the analyses, as well as any countries that have any data missing. This leaves us with 155 observations, and the following variables:  
+
+
+```{r code29, echo=F, warning = F, message = F}
+
+# clear all variables possibly left over from previous sessions
+rm(list = ls())
+
+# load libraries
+
+library(GGally)
+library(ggplot2)
+library(dplyr)
+
+# load the data
+human <- read.table("./data/human.txt",header = T,  dec = ".")
+
+
+# explore the dataset
+str(human)
+dim(human)
+
+```
+ 
+ So there are 155 observations (countries), and 8 variables. The explanations of the variables can be found [here]( https://raw.githubusercontent.com/TuomoNieminen/Helsinki-Open-Data-Science/master/datasets/human_meta.txt), thanks to Tuomo Nieminen. For example, the Edu2.FM is the ratio of "Proportion of females with at least secondary education" with "Proportion of males with at least secondary education". We can call this the evenness of education.
+ 
+ To get a better handle of the data, let's explore the distributions and relationships of the variables.
+
+```{r code30, echo=T, warning = F}
+ggpairs(human)
+
+```
+Many of the variables seem to have multimodal distributions: that is, they have more than one peak. For example, the ratio of proportion of females having at least secondary education to the males having at least secondary higher education shows a clear peak at around one. This is where roughly as big proportion of females have at least secondary education as males do. However, we can see a lower, but still distinct, peak at around the value 0.5. In these coutries only half as many females have at least secondary education compared to males. The other variables have similar distributions, with the majority of the countries having better and more equal values, and a smaller proportion having clearly worse values. There are some very clear correlations among the variables: for example, the life expectancy and the expected years of schooling show a very clear positive correlation, where as life expectancy and maternal mortality have a negative correlation. Both make total sense. So could it be that both the life expextancy and the expected years of education tell of some underlying phenomenon like general well-being of the country, not directly measured? Hmm...
+
+Let's still look at the numbers, that is the summary statistics of the individual variables:
+
+
+
+
+
+
+
+```{r code31, echo=T, warning = F}
+summary(human)
+
+```
+
+The variables seem to be measured on very different scales: the ratio of the fractions of females and males in the labour force varies from 0.19 to 1.04, while the GNI varies from 581 to 123124. This might present some challenges for the coming analyses: I will discuss and address this later. 
+
+Now, to try and reduce the dimensions of the data, we will perform principal component analysis (PCA). This method, as far as I know, can reveal some underlying patterns in the data. These could include the general well-being of the country, as discussed earlier. 
+
+
+
+
+
+
+```{r code32, echo=T, warning = F}
+
+# standardize the variables
+human_std <- scale(human)
+
+# perform principal component analysis on the standardized variables (with the SVD method)
+pca_human_std <- prcomp(human_std)
+
+# draw a biplot of the principal component representation and the original variables
+biplot(pca_human_std, choices = 1:2, cex = c(0.8,1), col = c("grey40","deeppink2"))
+
+
+
+
+```
+
+From the biplot (which is a bit hard to read, sorry!) we can first see that the first principal component (PC1 on the x-axis) is very highly correlated with GNI (the GNI arrow points virtually along the x-axis), and is the variable with the highest variability (the longest arrow), as already discussed before. So it would seem that the GNI affects the results very much. This would be OK if the values were higher for a good reason: for example, if that variable was more reliable or important compared to the others. But because we have no such information here, the unproportionally large effect of this variable is not beneficial.
+
+To reduce its effect, we will next standardize the variables. This will lead to the different variables having equal potential to affect the result.
+
+
+```{r code33, echo=T, warning = F}
+
+# perform principal component analysis (with the SVD method)
+pca_human <- prcomp(human_std)
+
+# draw a biplot of the principal component representation and the original variables
+biplot(pca_human, choices = 1:2, cex = c(0.8,1), col = c("grey40","deeppink2"))
+
+
+
+
+```
+
+
+Now the biplot looks much more balanced: instead of one variable dominating the plot, now all the different variables are visible in the plot. Still, this plot is looking as nice as it could, my apologies for that. But at least it is easier to interpret now. We can see that while GNI is still correlated with the first principal component, it no longer dominates it. It seems that the variables get clearly separated among between the two first principal components. Life expectancy, the expected years of education, GNI and the evenness of education are anticorrelated with the first principal component, while maternal mortality and adolescent birth rate are correlated with this. The variables correlated with the second principal component are the fraction of females in the parliament, and the evenness in the workforce between males and females. The variables associated with the first principal component seem to be related to the general development in the country: lets call this component "life quality" for now. The ones associated with the second, on the other hand, seem to be more specifically related to the equality of genders: we'll call this the "gender equality". Surprisingly, the evenness of education is included in the first component, quality of life, and not in the gender equality. So maybe the education of females comes somewhat automatically with general development, but the gender equality has to be separately advanced.
+
+So it would seem that there is some kind of a disconnect between the general development and life quality of a country, and the equality between the genders. For example, Iran and Qatar seem to have a relatively high "quality of life", but a low gender equality. In general, Middle Eastern countries seem to have this kind of a relationship between the two. Subsaharan African countries might have high gender equality, but low quality of life in general. This could be caused, among other things, but the high prevalence of HIV in this region (this lowers life expectancy, and is caused by missing birth control, which in turn causes high adolescent birth rate). In the worst quadrant, we have countries such as Afghanistan, Sudan and Niger, where both the quality of life and the gender equality are in a poor shape. These countries have or have generally had some conflict going on: this explains the poor conditions. Thankfully, there are only few countries in this corner of the plot. In the best corner, with high life quality and high equality of genders, we have North and Central Eurpoean countries, especially the Nordic countries. Good for us!
+
+Now that we got started with this super interesting data set about the wellbeing, development and gender equality in the countries all around the world, we'll stop and move on to explore people's tea drinking habits. We will start by loading the package FactoMineR, which contains the data set on tea drinking that we are going to use. When we will pick only the columns tea (the type of the the person drinks), (How capital H, how they drink it, f.ex. with lemon), how (little c, how they brew it) sugar (whether they drink it with sugar or not), where (where they get their tea from), and lunch (whether they drink tea with lunch or not, I guess). After that, let's look at the distributions of the (now categorical) variables:
+
+
+```{r code34, echo=T, warning = F}
+
+library(FactoMineR)
+
+
+data('tea')
+
+# column names to keep in the dataset
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+
+# select the 'keep_columns' to create a new dataset
+tea_time <- dplyr::select(tea, one_of(keep_columns))
+
+# look at the summaries and structure of the data
+summary(tea_time)
+str(tea_time)
+
+library(tidyr)
+
+
+# visualize the dataset
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free")  + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+
+
+```
+
+
+Some variables are more evenly distributed (almost as many people drink their tea with sugar as without), and some are less so (most of the people dirink their tea alone, without any "condiments"). To see which of these categories are related, (f.ex. if the people who use tea bags buy their tea from a chain store), we will perform a multiple correspondence analysis (MCA) on the data.
+
+
+
+
+
+```{r code35, echo=T, warning = F}
+# multiple correspondence analysis
+mca <- MCA(tea_time, graph = FALSE)
+
+# summary of the model
+#summary(mca)
+
+# visualize MCA
+plot(mca, invisible=c("ind"), habillage = "quali")
+
+
+```
+
+In the plot, the categories that are coloured with the same colour, are categories of the same  variable. So all the red points are ways of drinking your tea. The categories close to each other are associated to each other. For example, the unpackaged brewing method and buying your tea from a tea shop, are generally related: so the same people do both. These people are the tea connoisseurs. These two categories are also most separate from others. The other forms form more of a continuum, with less clear diferences between neighbouring classes.
+
+
+

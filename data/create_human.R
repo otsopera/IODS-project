@@ -117,3 +117,17 @@ human <- filter(human, complete.cases(human))
 
 # filter out all last seven rows (regions instead of countries)
 human <- human[1:155,]
+
+
+
+# add countries as rownames
+rownames(human) <- human$Country
+
+
+# remove the Country variable
+human <- select(human, -Country)
+
+# save data to txt
+write.table(human, file = "human.txt", row.names = T)
+
+
