@@ -1,7 +1,12 @@
 # Otso Perakyla, 17.2.2017: IODS exercise 4
 
 # set working directory
-setwd("/Users/otsopera/Documents/IODS/IODS-project/data")
+if (Sys.info()['sysname'] == 'Windows') {
+  setwd("D:/Documents/Courses/IODS/IODS-project/data")
+} else {
+  setwd("/Users/otsopera/Documents/IODS/IODS-project/data")
+}
+
 
 
 # clear all variables possibly left over from previous sessions
@@ -37,7 +42,7 @@ names_hd[names_hd == "Human.Development.Index..HDI."] <- "HDI"
 names_hd[names_hd == "Life.Expectancy.at.Birth"] <- "life_exp_yrs"
 names_hd[names_hd == "Expected.Years.of.Education"] <- "exp_edu_yrs"
 names_hd[names_hd == "Mean.Years.of.Education"] <- "mean_edu_yrs"
-names_hd[names_hd == "Gross.National.Income..GNI..per.Capita"] <- "GNI_per_capita"
+names_hd[names_hd == "Gross.National.Income..GNI..per.Capita"] <- "GNI"
 names_hd[names_hd == "GNI.per.Capita.Rank.Minus.HDI.Rank"] <- "GNI_minus_HDI_ranks"
 names(hd) = names_hd; # set names
 
@@ -81,4 +86,21 @@ write.table(human, file = "human.txt", row.names = F)
 
 head(read.table("human.txt"))
 # seems to work
+
+
+
+# tidyr package and human are available
+
+# access the stringr package
+library(stringr)
+
+# look at the structure of the GNI column in 'human'
+str(human$GNI)
+
+# remove the commas from GNI and save it in the human data
+
+
+human <- mutate(human, GNI = as.numeric(str_replace(human$GNI, pattern=",", replace ="")))
+summary(human$GNI)
+
 
